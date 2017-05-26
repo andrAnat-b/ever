@@ -11,7 +11,7 @@
 -include("ever_h.hrl").
 %%-compile({no_auto_import, [get/2]}).
 %% API
--export([chk/2, tst/0]).
+-export([chk/2]).
 
 %% Service API & Utilites
 -export([get/2, get/3, set/3, set/4, get_vpath/0]).
