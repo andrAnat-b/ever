@@ -29,7 +29,7 @@
   regexp_check   = false :: false | [list()], %% list with strings considered regexps
 %%  regexp_capt    = false :: true | false,
   %% works only for not complex types -> transform value to first expected type if it possible
-  is_cached      = false, %% if saved automaticaly set to true - for speed improvement
+%%  is_cached      = false, %% if saved automaticaly set to true - for speed improvement
   replace_val    = true
 }).
 
