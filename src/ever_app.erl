@@ -5,7 +5,7 @@
 -export([stop/1]).
 
 start(_Type, _Args) ->
-	ever_sup:start_link().
+	{ok, self()}.
 
 stop(_State) ->
 	ok.
