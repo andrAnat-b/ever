@@ -31,25 +31,25 @@ check(#verify_or{rules = Rules}, Object)  when is_list(Rules) ->
 check(#verify{key = Key} = Rule, Object) when Key =/= undefined ->
          _ = setd('$$c_key', Key),
   Value    = {true, value, get(Key, Object, '$not_found!')},
-  io:format("\e[95m[dbg]\e[0m value [~p] \e[35m~p\e[0m\n", [?LINE, Value]),
+  % io:format("\e[95m[dbg]\e[0m value [~p] \e[35m~p\e[0m\n", [?LINE, Value]),
   CNResult = check_necessary(Key,      Value,      Rule#verify.is_necessary),
-  io:format("\e[95m[dbg]\e[0m check_necessary [~p] \e[35m~p\e[0m\n", [?LINE, CNResult]),
+  % io:format("\e[95m[dbg]\e[0m check_necessary [~p] \e[35m~p\e[0m\n", [?LINE, CNResult]),
   CEResult = check_expected(Key,       CNResult,   Rule#verify.expected_val),
-  io:format("\e[95m[dbg]\e[0m check_expected [~p] \e[35m~p\e[0m\n", [?LINE, CEResult]),
+  % io:format("\e[95m[dbg]\e[0m check_expected [~p] \e[35m~p\e[0m\n", [?LINE, CEResult]),
   VTResult = validate_type(Key,        CEResult,  Rule#verify.expected_type),
-  io:format("\e[95m[dbg]\e[0m validate_type [~p] \e[35m~p\e[0m\n", [?LINE, VTResult]),
+  % io:format("\e[95m[dbg]\e[0m validate_type [~p] \e[35m~p\e[0m\n", [?LINE, VTResult]),
   VRResult = validate_range(Key,       VTResult, Rule#verify.expected_range),
-  io:format("\e[95m[dbg]\e[0m validate_range [~p] \e[35m~p\e[0m\n", [?LINE, VRResult]),
+  % io:format("\e[95m[dbg]\e[0m validate_range [~p] \e[35m~p\e[0m\n", [?LINE, VRResult]),
   VRgxpRes = validate_by_reg_exp(Key,  VRResult,   Rule#verify.regexp_check),
-  io:format("\e[95m[dbg]\e[0m validate_by_reg_exp [~p] \e[35m~p\e[0m\n", [?LINE, VRgxpRes]),
+  % io:format("\e[95m[dbg]\e[0m validate_by_reg_exp [~p] \e[35m~p\e[0m\n", [?LINE, VRgxpRes]),
   case VRgxpRes of
     {true, _, NewValue} ->
-      erlang:put('$validation_errors', [
+      setd('$validation_errors', [
         {key, getd('$$c_key', Key)},
         {res, [CNResult, CEResult, VTResult, VRResult, VRgxpRes]}]),
       {true, replace_val(Key, NewValue, Object, Rule#verify.replace_val)};
     {false , _} = Fail ->
-      erlang:put('$validation_errors', [
+      setd('$validation_errors', [
         {key, getd('$$c_key', Key)},
         {res, [CNResult, CEResult, VTResult, VRResult, VRgxpRes]}]),
       Fail
@@ -117,7 +117,7 @@ validate_type(Key, {true, _, Value}, Type) ->
     is_binary(Value),  Type == binary  -> {true, binary,  Value};
     is_integer(Value), Type == integer -> {true, integer, Value};
     is_binary(Value),  (Type == integer orelse Type == bin_int) -> cast_bin_to_int(Key, Value, Type);
-    is_binary(Value),  (Type == float orelse Type == bin_float) -> cast_bin_to_flaot(Key, Value, Type);
+    is_binary(Value),  (Type == float orelse Type == bin_float) -> cast_bin_to_float(Key, Value, Type);
     true ->  {false, [{error, Key}, {expected_type, Type}]}
   end;
 validate_type(_, Fail, _) ->
@@ -159,7 +159,7 @@ cast_bin_to_int(Key, Value, Type) ->
     _ : _  -> {false, [{error, Key}, {expected_type, Type}]}
   end.
 
-cast_bin_to_flaot(Key, Value, Type) ->
+cast_bin_to_float(Key, Value, Type) ->
   try binary_to_float(Value) of
     Result -> {true, float,  Result}
   catch
