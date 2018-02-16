@@ -29,20 +29,15 @@ check(#verify_and{rules = Rules}, Object) when is_list(Rules) ->
 check(#verify_or{rules = Rules}, Object)  when is_list(Rules) ->
   check_or(Rules, Object, []);
 check(#verify{key = Key} = Rule, Object) when Key =/= undefined ->
-         _ = setd('$$c_key', Key),
-  Value    = {true, value, get(Key, Object, '$not_found!')},
-  % io:format("\e[95m[dbg]\e[0m value [~p] \e[35m~p\e[0m\n", [?LINE, Value]),
-  CNResult = check_necessary(Key,      Value,      Rule#verify.is_necessary),
-  % io:format("\e[95m[dbg]\e[0m check_necessary [~p] \e[35m~p\e[0m\n", [?LINE, CNResult]),
-  CEResult = check_expected(Key,       CNResult,   Rule#verify.expected_val),
-  % io:format("\e[95m[dbg]\e[0m check_expected [~p] \e[35m~p\e[0m\n", [?LINE, CEResult]),
-  VTResult = validate_type(Key,        CEResult,  Rule#verify.expected_type),
-  % io:format("\e[95m[dbg]\e[0m validate_type [~p] \e[35m~p\e[0m\n", [?LINE, VTResult]),
-  VRResult = validate_range(Key,       VTResult, Rule#verify.expected_range),
-  % io:format("\e[95m[dbg]\e[0m validate_range [~p] \e[35m~p\e[0m\n", [?LINE, VRResult]),
-  VRgxpRes = validate_by_reg_exp(Key,  VRResult,   Rule#verify.regexp_check),
-  % io:format("\e[95m[dbg]\e[0m validate_by_reg_exp [~p] \e[35m~p\e[0m\n", [?LINE, VRgxpRes]),
-  case VRgxpRes of
+            _ = setd('$$c_key', Key),
+  Value       = {true, value, get(Key, Object, '$not_found!')},
+  CNResult    = check_necessary(Key,            Value,   Rule#verify.is_necessary),
+  CEResult    = check_expected(Key,          CNResult,   Rule#verify.expected_val),
+  VTResult    = validate_type(Key,           CEResult,  Rule#verify.expected_type),
+  VRResult    = validate_range(Key,          VTResult, Rule#verify.expected_range),
+  VRgxpRes    = validate_by_reg_exp(Key,     VRResult,   Rule#verify.regexp_check),
+  VCustomRule = validate_custom_rule(Key,    VRgxpRes,         Rule#verify.custom), 
+  case VCustomRule of
     {true, _, NewValue} ->
       setd('$validation_errors', [
         {key, getd('$$c_key', Key)},
@@ -51,7 +46,7 @@ check(#verify{key = Key} = Rule, Object) when Key =/= undefined ->
     {false , _} = Fail ->
       setd('$validation_errors', [
         {key, getd('$$c_key', Key)},
-        {res, [CNResult, CEResult, VTResult, VRResult, VRgxpRes]}]),
+        {res, [CNResult, CEResult, VTResult, VRResult, VRgxpRes, VCustomRule]}]),
       Fail
   end.
 
@@ -250,7 +245,9 @@ validate_by_reg_exp_loop(Key, Value, [REGEXP|RestExpressions], AccOk, AccERR) ->
 validate_by_reg_exp_loop(_Key, _Value, [], AccOk, AccERR) ->
   {AccOk, AccERR}.
 
-
+validate_custom_rule(_Key, VRgxpRes, _Fun) ->
+  %% @todo add fun proceed
+  VRgxpRes.
 
 
 
