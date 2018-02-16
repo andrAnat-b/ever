@@ -30,7 +30,8 @@
 %%  regexp_capt    = false :: true | false,
   %% works only for not complex types -> transform value to first expected type if it possible
 %%  is_cached      = false, %% if saved automaticaly set to true - for speed improvement
-  replace_val    = true
+  replace_val    = true,
+  custom         = undefined %% undefined | fun/1
 }).
 
 %% allowed casts
